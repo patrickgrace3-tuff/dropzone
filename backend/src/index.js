@@ -20,30 +20,45 @@ import userRoutes    from './routes/users.js';
 import paymentRoutes from './routes/payments.js';
 import aiRoutes      from './routes/ai.js';
 import uploadRoutes  from './routes/uploads.js';
+import orderRoutes   from './routes/orders.js';
 
 dotenv.config();
 
 const __dirname  = path.dirname(fileURLToPath(import.meta.url));
 const app        = express();
 const httpServer = createServer(app);
-const io         = new Server(httpServer, {
-  cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-    credentials: true,
+
+// Allow all origins — works for any Render URL without needing exact config
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, etc)
+    // Allow any onrender.com subdomain and localhost
+    if (!origin) return callback(null, true);
+    const allowed =
+      origin.endsWith('.onrender.com') ||
+      origin.startsWith('http://localhost') ||
+      origin.startsWith('http://127.0.0.1') ||
+      origin === (process.env.FRONTEND_URL || '');
+    if (allowed) return callback(null, true);
+    callback(new Error(`CORS blocked: ${origin}`));
   },
+  credentials: true,
+  methods: ['GET','POST','PUT','DELETE','OPTIONS','PATCH'],
+  allowedHeaders: ['Content-Type','Authorization'],
+};
+
+const io = new Server(httpServer, {
+  cors: corsOptions,
 });
 
 app.use(helmet({ contentSecurityPolicy: false }));
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  credentials: true,
-}));
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // handle preflight for all routes
 app.use(morgan('dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use((req, _res, next) => { req.io = io; next(); });
 
-// Serve uploaded images
 app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
 
 app.use('/api/auth',     authRoutes);
@@ -54,6 +69,7 @@ app.use('/api/users',    userRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/ai',       aiRoutes);
 app.use('/api/uploads',  uploadRoutes);
+app.use('/api/orders',   orderRoutes);
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok', time: new Date() }));
 app.use(errorHandler);
@@ -108,16 +124,16 @@ connectDB()
       status TEXT DEFAULT 'pending_payment', shipping_addr JSONB DEFAULT '{}',
       created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW()
     );
-    CREATE INDEX IF NOT EXISTS idx_listings_status   ON listings(status);
-    CREATE INDEX IF NOT EXISTS idx_listings_seller   ON listings(seller_id);
-    CREATE INDEX IF NOT EXISTS idx_bids_listing      ON bids(listing_id);
-    CREATE INDEX IF NOT EXISTS idx_orders_buyer      ON orders(buyer_id);
-    CREATE INDEX IF NOT EXISTS idx_orders_seller     ON orders(seller_id);
+    CREATE INDEX IF NOT EXISTS idx_listings_status ON listings(status);
+    CREATE INDEX IF NOT EXISTS idx_listings_seller ON listings(seller_id);
+    CREATE INDEX IF NOT EXISTS idx_bids_listing    ON bids(listing_id);
+    CREATE INDEX IF NOT EXISTS idx_orders_buyer    ON orders(buyer_id);
+    CREATE INDEX IF NOT EXISTS idx_orders_seller   ON orders(seller_id);
   `))
   .then(() => {
     httpServer.listen(PORT, () => {
       console.log(`\n🚀 Dropzone running on port ${PORT}`);
-      console.log(`   Frontend: ${process.env.FRONTEND_URL || 'http://localhost:5173'}\n`);
+      console.log(`   CORS: allowing *.onrender.com + localhost\n`);
     });
   })
   .catch(err => { console.error('Startup error:', err); process.exit(1); });

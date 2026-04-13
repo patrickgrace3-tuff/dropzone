@@ -73,6 +73,17 @@ export const aiAPI = {
   showScript: (data) => api.post('/ai/show-script', data),
 };
 
+export const ordersAPI = {
+  my:       ()           => api.get('/orders/my'),
+  sales:    ()           => api.get('/orders/sales'),
+  get:      (id)         => api.get(`/orders/${id}`),
+  create:   (data)       => api.post('/orders', data),
+  ship:     (id, data)   => api.put(`/orders/${id}/ship`, data),
+  pay:      (id, data)   => api.put(`/orders/${id}/pay`, data),
+  shipping: (id, addr)   => api.put(`/orders/${id}/shipping`, { shippingAddress: addr }),
+  review:   (id, data)   => api.post(`/orders/${id}/review`, data),
+};
+
 export const uploadImage = async (file) => {
   const fd = new FormData();
   fd.append('image', file);

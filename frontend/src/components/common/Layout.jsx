@@ -91,6 +91,11 @@ export default function Layout() {
                         onClick={() => setMenuOpen(false)}>
                         My Profile
                       </Link>
+                      <Link to="/orders"
+                        className="block px-4 py-2 text-sm hover:bg-gray-50"
+                        onClick={() => setMenuOpen(false)}>
+                        My Orders
+                      </Link>
                       {isSeller ? (
                         <Link to="/seller"
                           className="block px-4 py-2 text-sm hover:bg-gray-50 font-semibold text-brand"

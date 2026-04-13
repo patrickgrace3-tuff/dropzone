@@ -169,9 +169,10 @@ export default function ListingPage() {
             <div className="card p-4 mb-4">
               <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Buy it now</div>
               <div className="text-3xl font-extrabold mb-3">${listing.buyNow.price.toLocaleString()}</div>
-              <button className="w-full bg-brand2 text-white font-bold py-3 rounded-xl hover:opacity-90 transition-all">
-                Buy Now
-              </button>
+              <a href={`/checkout/${listing.id}`}
+                className="block w-full bg-brand2 text-white font-bold py-3 rounded-xl hover:opacity-90 transition-all text-center">
+                Buy Now — ${listing.buyNow?.price?.toLocaleString()}
+              </a>
             </div>
           )}
 

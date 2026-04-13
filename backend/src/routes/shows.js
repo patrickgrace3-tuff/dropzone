@@ -195,6 +195,25 @@ router.post('/:id/hammer', authenticate, requireSeller, async (req, res) => {
     [JSON.stringify(inventory), nextIdx !== -1 ? nextIdx : curIdx, newRevenue, req.params.id]
   );
 
+  // Auto-create order for the winning bidder
+  try {
+    const { v4: uuidv4 } = await import('uuid');
+    const listing = await queryOne('SELECT * FROM listings WHERE id=$1', [listingId]);
+    const winner  = await queryOne(
+      'SELECT bidder_id FROM bids WHERE listing_id=$1 AND is_winning=true ORDER BY amount DESC LIMIT 1',
+      [listingId]
+    );
+    if (listing && winner) {
+      const platformFee = finalPrice * 0.05;
+      await query(
+        `INSERT INTO orders (id, buyer_id, seller_id, listing_id, type, amount, platform_fee, total, status)
+         VALUES ($1,$2,$3,$4,'live_auction',$5,$6,$7,'pending_payment')
+         ON CONFLICT DO NOTHING`,
+        [uuidv4(), winner.bidder_id, listing.seller_id, listingId, finalPrice, platformFee, finalPrice]
+      );
+    }
+  } catch(e) { console.error('Order creation error:', e.message); }
+
   req.io.to(`show:${req.params.id}`).emit('show:item:sold', { listingId, finalPrice, nextItem });
   res.json({ show: await withSeller(updated), soldItem: cur, nextItem });
 });

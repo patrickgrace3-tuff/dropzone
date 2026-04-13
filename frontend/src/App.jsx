@@ -13,6 +13,9 @@ import LiveShowPage      from './pages/LiveShowPage.jsx';
 import ProfilePage       from './pages/ProfilePage.jsx';
 import LoginPage         from './pages/LoginPage.jsx';
 import RegisterPage      from './pages/RegisterPage.jsx';
+import CheckoutPage      from './pages/CheckoutPage.jsx';
+import OrdersPage        from './pages/OrdersPage.jsx';
+import OrderDetailPage   from './pages/OrderDetailPage.jsx';
 
 import SellerDashboard     from './pages/seller/SellerDashboard.jsx';
 import SellerListings      from './pages/seller/SellerListings.jsx';

@@ -1,5 +1,4 @@
 services:
-  # Backend API
   - type: web
     name: dropzone-backend
     runtime: node
@@ -16,18 +15,14 @@ services:
           name: dropzone-db
           property: connectionString
       - key: FRONTEND_URL
-        value: https://dropzone-frontend.onrender.com
+        value: https://dropzone-1-3kev.onrender.com
 
-  # Frontend Static Site
   - type: web
     name: dropzone-frontend
     runtime: static
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
-    envVars:
-      - key: VITE_API_URL
-        value: https://dropzone-backend.onrender.com
     routes:
       - type: rewrite
         source: /*

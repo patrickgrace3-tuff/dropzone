@@ -81,6 +81,8 @@ export const ordersAPI = {
   ship:     (id, data) => api.put(`/orders/${id}/ship`, data),
   deliver:  (id)       => api.put(`/orders/${id}/deliver`),
   review:   (id, data) => api.post(`/orders/${id}/review`, data),
+  cancel:   (id)       => api.put(`/orders/${id}/cancel`),
+  remove:   (id)       => api.delete(`/orders/${id}`),
 };
 
 export const uploadImage = async (file) => {

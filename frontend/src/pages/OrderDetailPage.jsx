@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ordersAPI } from '../services/api.js';
 import { useAuthStore } from '../context/authStore.js';
 import toast from 'react-hot-toast';
@@ -23,6 +23,7 @@ const STATUS_COLORS = {
 
 export default function OrderDetailPage() {
   const { id }   = useParams();
+  const navigate  = useNavigate();
   const { user } = useAuthStore();
   const [order, setOrder]         = useState(null);
   const [loading, setLoading]     = useState(true);
@@ -59,6 +60,26 @@ export default function OrderDetailPage() {
       load();
     } catch { toast.error('Failed'); }
     setSubmitting(false);
+  };
+
+  const handleCancel = async () => {
+    if (!confirm('Cancel this order?')) return;
+    setSubmitting(true);
+    try {
+      await ordersAPI.cancel(id);
+      toast.success('Order cancelled');
+      load();
+    } catch (err) { toast.error(err.error || 'Failed'); }
+    setSubmitting(false);
+  };
+
+  const handleDelete = async () => {
+    if (!confirm('Remove this order permanently?')) return;
+    try {
+      await ordersAPI.remove(id);
+      toast.success('Order removed');
+      navigate('/orders');
+    } catch (err) { toast.error(err.error || 'Failed'); }
   };
 
   if (loading) return <div className="max-w-3xl mx-auto px-4 py-12 text-gray-400">Loading...</div>;
@@ -250,7 +271,30 @@ export default function OrderDetailPage() {
           </div>
         )}
 
-        {order.review_rating && (
+        {/* Cancel / Delete */}
+      {!['shipped','delivered','cancelled'].includes(order.status) && (
+        <div className="card p-5 border-red-100">
+          <h3 className="font-bold mb-3 text-red-600">Cancel order</h3>
+          <p className="text-sm text-gray-500 mb-3">Cancelling will restore the listing to active status.</p>
+          <button onClick={handleCancel} disabled={submitting}
+            className="px-4 py-2 bg-red-50 text-red-600 font-bold text-sm rounded-xl border border-red-200 hover:bg-red-100 disabled:opacity-50">
+            {submitting ? 'Cancelling...' : 'Cancel this order'}
+          </button>
+        </div>
+      )}
+
+      {order.status === 'cancelled' && (
+        <div className="card p-5 border-gray-100">
+          <h3 className="font-bold mb-3 text-gray-500">Remove order</h3>
+          <p className="text-sm text-gray-400 mb-3">Remove this cancelled order from your order history.</p>
+          <button onClick={handleDelete}
+            className="px-4 py-2 bg-gray-100 text-gray-600 font-bold text-sm rounded-xl hover:bg-gray-200">
+            🗑 Remove from history
+          </button>
+        </div>
+      )}
+
+      {order.review_rating && (
           <div className="card p-5 bg-yellow-50 border-yellow-100">
             <h3 className="font-bold mb-2">Your review</h3>
             <div className="flex items-center gap-1 mb-1">

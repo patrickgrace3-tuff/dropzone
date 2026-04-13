@@ -177,4 +177,44 @@ router.post('/:id/review', authenticate, async (req, res) => {
   res.json({ ok: true });
 });
 
+// PUT /api/orders/:id/cancel — buyer or seller can cancel
+router.put('/:id/cancel', authenticate, async (req, res) => {
+  const order = await queryOne(
+    'SELECT * FROM orders WHERE id=$1 AND (buyer_id=$2 OR seller_id=$2)',
+    [req.params.id, req.user.id]
+  );
+  if (!order) return res.status(404).json({ error: 'Order not found' });
+  if (['shipped','delivered'].includes(order.status))
+    return res.status(400).json({ error: 'Cannot cancel a shipped order' });
+
+  const row = await queryOne(
+    `UPDATE orders SET status='cancelled', updated_at=NOW() WHERE id=$1 RETURNING *`,
+    [req.params.id]
+  );
+
+  // Restore listing to active if cancelled
+  if (order.status !== 'delivered') {
+    await query(
+      `UPDATE listings SET status='active', buynow_sold=GREATEST(0,buynow_sold-1) WHERE id=$1`,
+      [order.listing_id]
+    );
+  }
+
+  res.json({ order: fmt(row) });
+});
+
+// DELETE /api/orders/:id — remove cancelled order from view
+router.delete('/:id', authenticate, async (req, res) => {
+  const order = await queryOne(
+    'SELECT * FROM orders WHERE id=$1 AND (buyer_id=$2 OR seller_id=$2)',
+    [req.params.id, req.user.id]
+  );
+  if (!order) return res.status(404).json({ error: 'Order not found' });
+  if (order.status !== 'cancelled')
+    return res.status(400).json({ error: 'Only cancelled orders can be deleted' });
+
+  await query('DELETE FROM orders WHERE id=$1', [req.params.id]);
+  res.json({ ok: true });
+});
+
 export default router;

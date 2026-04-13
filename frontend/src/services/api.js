@@ -52,7 +52,8 @@ export const showsAPI = {
   end:      (id)     => api.post(`/shows/${id}/end`),
   addItem:  (id, d)  => api.post(`/shows/${id}/inventory`, d),
   nextItem: (id)     => api.post(`/shows/${id}/next-item`),
-  hammer:   (id, d)  => api.post(`/shows/${id}/hammer`, d),
+  hammer:         (id, d)  => api.post(`/shows/${id}/hammer`, d),
+  availableItems: (id)     => api.get(`/shows/${id}/available-items`),
 };
 
 export const usersAPI = {

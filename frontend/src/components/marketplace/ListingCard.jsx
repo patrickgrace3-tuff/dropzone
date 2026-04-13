@@ -84,6 +84,9 @@ export default function ListingCard({ listing }) {
           {listing.isLiveActive && (
             <span className="badge-live text-[10px]"><span className="live-dot" /> LIVE</span>
           )}
+          {listing.auctionType === 'live_show' && !listing.isLiveActive && (
+            <span className="text-[9px] font-bold px-2 py-1 bg-brand2 text-white rounded-full">🎬 LIVE SHOW</span>
+          )}
         </div>
         <div className="absolute top-2 right-2 flex flex-col gap-1 items-end">
           {isAuction && <span className="badge-auction text-[10px]">AUCTION</span>}

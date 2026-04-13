@@ -19,7 +19,7 @@ export default function SellerCreateListing() {
 
   const [form, setForm] = useState({
     title: '', description: '', category: 'sneakers', condition: 'new',
-    type: 'auction', tags: '',
+    type: 'auction', auctionType: 'standard', tags: '',
     auction: { startingBid: '', duration: 7, reservePrice: '' },
     buyNow:  { price: '', quantity: 1 },
     shipping: { freeShipping: false, weight: '' },
@@ -91,6 +91,7 @@ export default function SellerCreateListing() {
         ...form,
         images: images.map(({ url, publicId }) => ({ url, publicId })),
         tags: form.tags.split(',').map(t => t.trim()).filter(Boolean),
+        auctionType: form.auctionType,
       };
       const { listing } = await listingsAPI.create(payload);
       if (publish) {
@@ -185,6 +186,39 @@ export default function SellerCreateListing() {
           {/* Listing type */}
           <div className="bg-white rounded-2xl border border-gray-100 p-5 space-y-4">
             <h2 className="font-bold">Listing type</h2>
+
+            {/* Auction type — standard vs live show only */}
+            <div>
+              <label className="label">Where can this be sold?</label>
+              <div className="grid grid-cols-2 gap-3">
+                <button type="button"
+                  onClick={() => set('auctionType', 'standard')}
+                  className={`p-4 rounded-xl border-2 text-left transition-all
+                    ${form.auctionType === 'standard'
+                      ? 'border-brand bg-brand/5'
+                      : 'border-gray-200 hover:border-gray-300'}`}>
+                  <div className="text-xl mb-1">🛍</div>
+                  <div className="font-bold text-sm">Marketplace auction</div>
+                  <div className="text-xs text-gray-500 mt-0.5">Listed publicly, anyone can bid anytime</div>
+                </button>
+                <button type="button"
+                  onClick={() => set('auctionType', 'live_show')}
+                  className={`p-4 rounded-xl border-2 text-left transition-all
+                    ${form.auctionType === 'live_show'
+                      ? 'border-live bg-live/5'
+                      : 'border-gray-200 hover:border-gray-300'}`}>
+                  <div className="text-xl mb-1">🎬</div>
+                  <div className="font-bold text-sm">Live show only</div>
+                  <div className="text-xs text-gray-500 mt-0.5">Hidden from marketplace, only available during your live show</div>
+                </button>
+              </div>
+              {form.auctionType === 'live_show' && (
+                <div className="mt-2 bg-orange-50 border border-orange-100 rounded-xl p-3 text-xs text-orange-700 flex gap-2">
+                  <span>🎬</span>
+                  <span>This item will be hidden from the marketplace. Add it to a live show from your Show Studio to sell it.</span>
+                </div>
+              )}
+            </div>
 
             <div className="flex gap-2">
               {[['auction','Auction 🔨'],['buy_now','Buy Now 🛍'],['both','Both']].map(([v, l]) => (

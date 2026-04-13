@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { showsAPI, listingsAPI, aiAPI } from '../../services/api.js';
+import { showsAPI, aiAPI } from '../../services/api.js';
 import { getSocket, joinShow, leaveShow, sendChat } from '../../services/socket.js';
 import toast from 'react-hot-toast';
 import Broadcaster from '../../components/live/Broadcaster.jsx';
@@ -59,7 +59,7 @@ export default function SellerShowStudio() {
   }, [startCountdown]);
 
   useEffect(() => {
-    Promise.all([loadShow(), listingsAPI.browse({ status: 'active', limit: 50 })])
+    Promise.all([loadShow(), showsAPI.availableItems(id)])
       .then(([s, { listings: ls }]) => {
         setListings(ls || []);
         const active = s.inventory?.find(i => i.status === 'active');
@@ -318,8 +318,13 @@ export default function SellerShowStudio() {
                       {l.images?.[0]?.url ? <img src={l.images[0].url} className="w-full h-full object-cover" alt="" /> : '📦'}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-semibold truncate">{l.title}</p>
-                      <p className="text-xs text-gray-400">Start: ${l.auction?.startingBid || l.buyNow?.price || 0}</p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-xs font-semibold truncate">{l.title}</p>
+                        {l.auctionType === 'live_show' && (
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 bg-live/10 text-live rounded-full flex-shrink-0">LIVE ONLY</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-400">Start: ${l.startingBid || 0}</p>
                     </div>
                     <button onClick={() => addItemToShow(l.id, l.auction?.startingBid || l.buyNow?.price || 10)}
                       className="text-xs font-bold text-brand px-3 py-1.5 rounded-lg border border-brand/20 hover:bg-brand/5 flex-shrink-0">

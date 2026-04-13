@@ -124,6 +124,7 @@ connectDB()
       status TEXT DEFAULT 'pending_payment', shipping_addr JSONB DEFAULT '{}',
       created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW()
     );
+    ALTER TABLE listings ADD COLUMN IF NOT EXISTS auction_type TEXT DEFAULT 'standard';
     CREATE INDEX IF NOT EXISTS idx_listings_status ON listings(status);
     CREATE INDEX IF NOT EXISTS idx_listings_seller ON listings(seller_id);
     CREATE INDEX IF NOT EXISTS idx_bids_listing    ON bids(listing_id);

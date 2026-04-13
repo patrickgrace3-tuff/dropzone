@@ -96,12 +96,17 @@ export default function SellerListings() {
                     </div>
                   </td>
                   <td className="px-4 py-3 hidden sm:table-cell">
+                    <div className="flex flex-col gap-1">
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-full
                       ${l.type === 'auction' ? 'bg-orange-50 text-orange-600'
                       : l.type === 'buy_now' ? 'bg-green-50 text-green-700'
                       : 'bg-blue-50 text-blue-600'}`}>
                       {l.type === 'buy_now' ? 'BUY NOW' : l.type.toUpperCase()}
                     </span>
+                    {(l.auctionType === 'live_show') && (
+                      <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-brand2 text-white">🎬 LIVE ONLY</span>
+                    )}
+                  </div>
                   </td>
                   <td className="px-4 py-3">
                     <div className="font-bold text-brand text-sm">

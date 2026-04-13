@@ -106,8 +106,8 @@ router.post('/:id/end', authenticate, requireSeller, async (req, res) => {
 router.post('/:id/inventory', authenticate, requireSeller, async (req, res) => {
   const show    = await queryOne('SELECT * FROM live_shows WHERE id=$1 AND seller_id=$2', [req.params.id, req.user.id]);
   if (!show) return res.status(404).json({ error: 'Not found' });
-  const listing = await queryOne('SELECT id, title, images, category FROM listings WHERE id=$1', [req.body.listingId]);
-  if (!listing) return res.status(404).json({ error: 'Listing not found' });
+  const listing = await queryOne('SELECT id, title, images, category, auction_type, auction_start, buynow_price FROM listings WHERE id=$1 AND seller_id=$2', [req.body.listingId, req.user.id]);
+  if (!listing) return res.status(404).json({ error: 'Listing not found or not yours' });
 
   const inventory = show.inventory || [];
   inventory.push({
@@ -217,5 +217,33 @@ router.post('/:id/hammer', authenticate, requireSeller, async (req, res) => {
   req.io.to(`show:${req.params.id}`).emit('show:item:sold', { listingId, finalPrice, nextItem });
   res.json({ show: await withSeller(updated), soldItem: cur, nextItem });
 });
+
+// GET /api/shows/:id/available-items — seller's live_show listings not yet in this show
+router.get('/:id/available-items', authenticate, requireSeller, async (req, res) => {
+  const show = await queryOne('SELECT * FROM live_shows WHERE id=$1 AND seller_id=$2', [req.params.id, req.user.id]);
+  if (!show) return res.status(404).json({ error: 'Not found' });
+
+  // Get all listings owned by seller that are live_show type OR standard auction/both
+  const listings = await queryAll(
+    `SELECT * FROM listings WHERE seller_id=$1 AND status IN ('draft','active')
+     ORDER BY created_at DESC`,
+    [req.user.id]
+  );
+
+  // Filter out ones already in inventory
+  const inQueue = new Set((show.inventory || []).map(i => i.listing?.id || i.listing));
+  const available = listings.filter(l => !inQueue.has(l.id));
+
+  res.json({ listings: available.map(l => ({
+    id:          l.id,
+    title:       l.title,
+    images:      l.images || [],
+    category:    l.category,
+    auctionType: l.auction_type || 'standard',
+    startingBid: l.auction_start || l.buynow_price || 0,
+    status:      l.status,
+  }))});
+});
+
 
 export default router;

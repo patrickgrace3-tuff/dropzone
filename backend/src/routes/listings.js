@@ -17,6 +17,7 @@ function toJS(l) {
     images:      l.images || [],
     tags:        l.tags   || [],
     type:        l.type,
+    auctionType: l.auction_type || 'standard',
     status:      l.status,
     views:       l.views,
     isLiveActive:l.is_live_active,
@@ -63,7 +64,7 @@ const BASE = `
 router.get('/', async (req, res) => {
   const { q, category, type, status = 'active', sort = 'newest', page = 1, limit = 24 } = req.query;
 
-  const conditions = ['l.status = $1'];
+  const conditions = ['l.status = $1', "(l.auction_type = 'standard' OR l.auction_type IS NULL OR l.type = 'buy_now')"];
   const params     = [status];
   let   pi         = 2;
 
@@ -127,8 +128,8 @@ router.post('/', authenticate, requireSeller, async (req, res) => {
     `INSERT INTO listings
        (id, seller_id, title, description, category, condition, type, images, tags,
         auction_start, auction_current, auction_duration, auction_reserve,
-        buynow_price, buynow_qty, shipping_free, shipping_weight)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) RETURNING *`,
+        buynow_price, buynow_qty, shipping_free, shipping_weight, auction_type)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18) RETURNING *`,
     [
       id, req.user.id, title, description, category, condition, type,
       JSON.stringify(images), JSON.stringify(tags),
@@ -136,6 +137,7 @@ router.post('/', authenticate, requireSeller, async (req, res) => {
       auction.duration || 7, auction.reservePrice || null,
       buyNow.price || null, buyNow.quantity || 1,
       shipping.freeShipping ? true : false, shipping.weight || null,
+      req.body.auctionType || 'standard',
     ]
   );
   res.status(201).json({ listing: toJS(row) });

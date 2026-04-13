@@ -21,7 +21,7 @@ const STATUS_LABELS = {
   cancelled:       'Cancelled',
 };
 
-export default function SellerOrders() {
+export function SellerOrders() {
   const [orders, setOrders]   = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter]   = useState('all');

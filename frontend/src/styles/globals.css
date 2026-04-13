@@ -1,0 +1,65 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700;800&family=DM+Mono:wght@400;500&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Syne', sans-serif;
+    background: #F8F7F4;
+    color: #1C1C2E;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 99px; }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-brand text-white font-bold px-5 py-2.5 rounded-full hover:bg-dz-600 transition-all active:scale-95 text-sm;
+  }
+  .btn-secondary {
+    @apply bg-white text-brand2 font-semibold px-5 py-2.5 rounded-full border border-gray-200 hover:border-brand hover:text-brand transition-all text-sm;
+  }
+  .btn-ghost {
+    @apply text-gray-500 font-medium px-4 py-2 rounded-full hover:bg-gray-100 transition-all text-sm;
+  }
+  .card {
+    @apply bg-white rounded-2xl border border-gray-100 shadow-sm;
+  }
+  .input {
+    @apply w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm font-sans focus:outline-none focus:border-brand focus:bg-white transition-all;
+  }
+  .label {
+    @apply block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5;
+  }
+  .badge-live {
+    @apply inline-flex items-center gap-1 bg-live text-white text-xs font-bold px-2.5 py-1 rounded-full;
+  }
+  .badge-auction {
+    @apply inline-flex items-center bg-orange-50 text-orange-600 text-xs font-bold px-2.5 py-1 rounded-full;
+  }
+  .badge-buynow {
+    @apply inline-flex items-center bg-green-50 text-green-700 text-xs font-bold px-2.5 py-1 rounded-full;
+  }
+  .section-title {
+    @apply text-xl font-extrabold tracking-tight mb-4;
+  }
+  .live-dot {
+    @apply w-2 h-2 rounded-full bg-white animate-pulse-fast;
+  }
+}
+
+/* Auction countdown urgency colors */
+.timer-urgent { color: #FF2D55; animation: pulse 1s infinite; }
+.timer-warn   { color: #FF9500; }
+.timer-ok     { color: #6b7280; }
+
+/* Bid animation */
+@keyframes bidFlash {
+  0%   { background: #FFF4F1; transform: scale(1.01); }
+  100% { background: transparent; transform: scale(1); }
+}
+.bid-flash { animation: bidFlash 0.5s ease-out; }

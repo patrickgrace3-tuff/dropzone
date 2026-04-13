@@ -29,8 +29,6 @@ import SellerAnalytics     from './pages/seller/SellerAnalytics.jsx';
 function RequireAuth({ children }) {
   const user        = useAuthStore(s => s.user);
   const initialized = useAuthStore(s => s.initialized);
-
-  // Still booting — but if we already have a cached user show content immediately
   if (!initialized && !user) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -38,14 +36,12 @@ function RequireAuth({ children }) {
       </div>
     );
   }
-
   if (!user) return <Navigate to="/login" replace />;
   return children;
 }
 
 function RequireSeller({ children }) {
   const user = useAuthStore(s => s.user);
-  // If not a seller, send them to become-seller flow on the home page
   if (user && user.role !== 'seller' && user.role !== 'admin') {
     return <Navigate to="/" replace />;
   }
@@ -53,28 +49,30 @@ function RequireSeller({ children }) {
 }
 
 export default function App() {
-  // Use a stable reference — only call init once on mount
   const init = useAuthStore(s => s.init);
-
-  useEffect(() => {
-    init();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { init(); }, []); // eslint-disable-line
 
   return (
     <Routes>
-      {/* Public routes */}
+
+      {/* ── Public routes (inside main Layout with nav/footer) ── */}
       <Route element={<Layout />}>
-        <Route path="/"                  element={<HomePage />} />
-        <Route path="/marketplace"       element={<MarketplacePage />} />
-        <Route path="/listing/:id"       element={<ListingPage />} />
-        <Route path="/shows"             element={<LiveShowsPage />} />
-        <Route path="/shows/:id"         element={<LiveShowPage />} />
-        <Route path="/profile/:username" element={<ProfilePage />} />
-        <Route path="/login"             element={<LoginPage />} />
-        <Route path="/register"          element={<RegisterPage />} />
+        <Route path="/"                      element={<HomePage />} />
+        <Route path="/marketplace"           element={<MarketplacePage />} />
+        <Route path="/listing/:id"           element={<ListingPage />} />
+        <Route path="/shows"                 element={<LiveShowsPage />} />
+        <Route path="/shows/:id"             element={<LiveShowPage />} />
+        <Route path="/profile/:username"     element={<ProfilePage />} />
+        <Route path="/login"                 element={<LoginPage />} />
+        <Route path="/register"              element={<RegisterPage />} />
+
+        {/* Buyer pages — require login */}
+        <Route path="/checkout/:listingId"   element={<RequireAuth><CheckoutPage /></RequireAuth>} />
+        <Route path="/orders"                element={<RequireAuth><OrdersPage /></RequireAuth>} />
+        <Route path="/orders/:id"            element={<RequireAuth><OrderDetailPage /></RequireAuth>} />
       </Route>
 
-      {/* Seller dashboard — protected */}
+      {/* ── Seller dashboard ── */}
       <Route path="/seller" element={
         <RequireAuth>
           <RequireSeller>
